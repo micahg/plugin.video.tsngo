@@ -18,8 +18,11 @@ parser.add_option('-m', '--mso', type='string', dest='mso', default='Rogers',
 
 
 if options.user != None and options.password != None:
+    if options.mso == None:
+        print 'Please specify MSO' 
+        sys.exit(1)
     oa = OAuth()
-    oa.authorize(u'rogers', options.user, options.password)
+    oa.authorize(options.mso, options.user, options.password)
 
 tsn = TsnGo()
 if not options.id == None:
