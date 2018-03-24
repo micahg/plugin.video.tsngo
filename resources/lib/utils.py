@@ -18,9 +18,9 @@ def saveCookies(session_cookies):
     Write cookies to the cookie file
     @param session_cookies the session.cookies object to save
     """
-    with open(getCookieFile(), 'w') as f:
-        cookies = dict_from_cookiejar(session_cookies)
-        pickle.dump(cookies, f)
+    with open(getCookieFile(), 'wb') as f:
+        pickle.dump(session_cookies, f)
+        f.close()
 
 
 def loadCookies():
@@ -29,12 +29,12 @@ def loadCookies():
     @return a session.cookies object
     """
     try:
-        with open(getCookieFile(), 'r') as f:
+        with open(getCookieFile(), 'rb') as f:
             cookies = pickle.load(f)
-            return cookiejar_from_dict(cookies)
+            f.close()
+            return cookies
     except IOError as err:
         print 'Unable to load cookies: {}'.format(err)
-        return None
 
     return None
 

@@ -4,9 +4,14 @@ from resources.lib.utils import log
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon, os, urllib, urlparse
 import inputstreamhelper
 
+getSetting = xbmcaddon.Addon().getSetting
+getString = xbmcaddon.Addon().getLocalizedString
 
 def getAuthCredentials():
-    username = __settings__.getSetting("username")
+    """
+    Get the authorization credentials
+    """
+    username = getSetting("username")
     if len(username) == 0:
         dialog = xbmcgui.Dialog()
         dialog.ok(__language__(30000), __language__(30001))
@@ -14,8 +19,7 @@ def getAuthCredentials():
                                   succeeded=False)
         return None
 
-    # get the password
-    password = __settings__.getSetting("password")
+    password = getSetting("password")
     if len(password) == 0:
         dialog = xbmcgui.Dialog()
         dialog.ok(__language__(30002), __language__(30003))
@@ -23,7 +27,7 @@ def getAuthCredentials():
                                   succeeded=False)
         return None
 
-    mso = __settings__.getSetting("mso")
+    mso = getSetting("mso")
 
     return { 'u' : username, 'p' : password, 'm' : mso }
 
@@ -85,7 +89,7 @@ def playMpd(url, desc):
     p.play(url, li)
 
 
-def playChannel(tsn, id, desc, img):
+def playChannel(tsn, id, desc, img, reauth=False):
     """
     Play the indicated channel
     """
@@ -98,11 +102,15 @@ def playChannel(tsn, id, desc, img):
     authz = tsn.getMpdAuthz(mpd_info)
     log('MICAH Authz = "{}"'.format(authz), True)
 
-    # TODO fix this infinite recursion
+    if reauth:
+        # TODO popup error
+        log('Reauthorization failed', True)
+        return
+
     if not tsn.checkMpdAuthz(authz):
         log("Attempting authorization", True)
         authorize(tsn)
-        playChannel(tsn, id, desc, img)
+        playChannel(tsn, id, desc, img, True)
         return
 
     log('Authorized! Getting MPD URL...', True)
@@ -123,6 +131,7 @@ if len(sys.argv[2]) == 0:
     data_path = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile'))
     if not os.path.exists(data_path):
         os.makedirs(data_path)
+    #authorize(tsn)
 
     streams = tsn.getStreams()
     channelMenu(streams)

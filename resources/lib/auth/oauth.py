@@ -1,16 +1,5 @@
 import requests, json, re
 from ..utils import saveCookies, log
-"""
-import logging
-from httplib import HTTPConnection
-HTTPConnection.debuglevel = 1
-
-logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
-logging.getLogger().setLevel(logging.DEBUG)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
-requests_log.propagate = True
-"""
 
 class OAuth:
 
@@ -27,8 +16,9 @@ class OAuth:
         """
         idp_str = self.map_idp(idp);
         log('{} -> {}'.format(idp, idp_str), True)
-        self.start_oauth(idp_str, username, password)
+        result = self.start_oauth(idp_str, username, password)
         saveCookies(self.session.cookies)
+        return result
 
     def map_idp(self, idp_name):
         """
@@ -47,11 +37,12 @@ class OAuth:
             log("ERROR: no idps available", True)
             return None
 
+
         # find the requested idp_name
         idp_str = None
         for idp_key in js['possible_idps'].keys():
             name_key = js['possible_idps'][idp_key]['name']
-            if name_key == idp_name:
+            if name_key.lower() == idp_name.lower():
                 idp_str = idp_key
                 break
 
@@ -78,10 +69,9 @@ class OAuth:
         
         if not r.status_code == 200:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
-            return None 
+            return False 
 
         result = r.text
-        log(result, True)
         values = {}
         while True:
             stuff = re.search(regex_str, result, re.MULTILINE)
@@ -96,4 +86,8 @@ class OAuth:
         next_url =  r.url
 
         q = self.session.post(next_url, data = values)
-        log(q.status_code, True)
+        if not q.status_code == 200:
+            log('ERROR: {} returns status of {}'.format(next_url, r.status_code), True)
+            return False
+
+        return True
