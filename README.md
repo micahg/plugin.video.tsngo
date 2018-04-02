@@ -17,6 +17,4 @@ high. Don't get too attached!
   * some streams don't play -- needs further investigation
 
 ## TODO
-* Fix all streams
-* Add loading popups
-* Add error popups
+* Fix spinner on top of dialogs

@@ -3,6 +3,7 @@ import sys, os
 from optparse import OptionParser
 from resources.lib.tsngo import *
 from resources.lib.auth.oauth import OAuth
+from resources.lib.schedule import *
 
 # parse the options
 parser = OptionParser()
@@ -14,6 +15,7 @@ parser.add_option('-i', '--id', type='int', dest='id',
                   help="Channel ID")
 parser.add_option('-m', '--mso', type='string', dest='mso', default='Rogers',
                   help="Multi-system operator (eg: Rogers)")
+parser.add_option('-s', '--schedule', action='store_true', dest='schedule')
 (options, args) = parser.parse_args()
 
 
@@ -22,7 +24,12 @@ if options.user != None and options.password != None:
         print 'Please specify MSO' 
         sys.exit(1)
     oa = OAuth()
-    oa.authorize(options.mso, options.user, options.password)
+    if not oa.authorize(options.mso, options.user, options.password):
+        print 'Authorization failed'
+        sys.exit(1)
+    else:
+        print 'Authorization succeeded'
+        sys.exit(0)
 
 tsn = TsnGo()
 if not options.id == None:
@@ -44,16 +51,11 @@ if not options.id == None:
 
     mpd_url = tsn.getMpdUrl(options.id, content_id, authz)
     print 'MPD URL is "{}"'.format(mpd_url)
-    """
-    print 'Auth status: {}'.format(auth)
-    if auth['status'] == 'auth':
-        print auth['url']
-    elif auth['status'] == 'no_auth':
-        print "Authorization required"
-    else:
-        print "Unknown error"
-    """
 else:  
     streams = tsn.getStreams()
     for stream in streams:
-        print '{}) {}'.format(stream['id'], stream['desc'])
+        item = Schedule.getCurrentProgram(stream['desc'])
+        if options.schedule:
+            print '\tstream: {}\n\titem: {}'.format(stream, item)
+        title = item['Title'] if 'Title' in item else ''
+        print '{}) {} - {}'.format(stream['id'], stream['desc'], title)
