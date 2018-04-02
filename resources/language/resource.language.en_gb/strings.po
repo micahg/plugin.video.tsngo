@@ -1,7 +1,7 @@
 # XBMC Media Center language file
 # Addon Name: Dropbox
-# Addon id: script.module.dropbox
-# Addon version: 8.4.0
+# Addon id: plugin.video.tsngo
+# Addon version: 1.0.0
 # Addon Provider: Micah
 msgid ""
 msgstr ""
@@ -23,4 +23,44 @@ msgstr ""
 
 msgctxt "#30051"
 msgid "Password"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Authorizing..."
+msgstr ""
+
+msgctxt "#30053"
+msgid "Fetching stream..."
+msgstr ""
+
+msgctxt "#30054"
+msgid "Authorization failed"
+msgstr ""
+
+msgctxt "#30055"
+msgid "Please confirm credentials in settings"
+msgstr ""
+
+msgctxt "#30056"
+msgid "Logout"
+msgstr ""
+
+msgctxt "#30057"
+msgid "Provider"
+msgstr ""
+
+msgctxt "#30058"
+msgid "Fetching Data"
+msgstr ""
+
+msgctxt "#30059"
+msgid "Getting channels..."
+msgstr ""
+
+msgctxt "#30060"
+msgid "Getting program details for {}..."
+msgstr ""
+
+msgctxt "#30061"
+msgid "Success"
 msgstr ""

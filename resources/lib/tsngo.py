@@ -39,7 +39,7 @@ class TsnGo:
         saveCookies(self.session.cookies)
 
         streams = []
-        items = json.loads(r.text)['Items']
+        items = json.loads(r.content)['Items']
         for item in items:
             stream = {
                 'id': item['Id'],
@@ -67,7 +67,7 @@ class TsnGo:
             return None
         saveCookies(self.session.cookies) 
 
-        item = json.loads(r.text)
+        item = json.loads(r.content)
 
         return item['ContentPackages'][0]['Id']
 
@@ -86,7 +86,7 @@ class TsnGo:
             return None 
         saveCookies(self.session.cookies)
 
-        item = json.loads(r.text)
+        item = json.loads(r.content)
 
         return {
             'auth_type': item['Constraints']['Security']['Type'],
@@ -105,9 +105,9 @@ class TsnGo:
         saveCookies(self.session.cookies)
 
         regex_fmt = self.MPD_AUTH_RESP_REGEX_FMT.format(auth_res)
-        stuff = re.search(regex_fmt, r.text)
+        stuff = re.search(regex_fmt, r.content)
         if not stuff:
-            log('ERROR: Unable to parse MPD AI response "{}"'.format(r.text), True)
+            log('ERROR: Unable to parse MPD AI response "{}"'.format(r.content), True)
             return { 'status': 'unknown' }
 
         return stuff.group(1)
@@ -121,7 +121,7 @@ class TsnGo:
             return False
 
         if not auth['authorization'] == True:
-            log('ERROR: AI response had authorization value of "{}" ({})'.format(auth['authorization'], r.text), True)
+            log('ERROR: AI response had authorization value of "{}" ({})'.format(auth['authorization'], r.content), True)
             return False
 
         return True
@@ -134,4 +134,4 @@ class TsnGo:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
             return None 
         saveCookies(self.session.cookies)
-        return r.text
+        return r.content
