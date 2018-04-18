@@ -137,6 +137,10 @@ class OAuth:
                 path = '{}/{}'.format(os.path.dirname(url_bits.path), action)
                 url = '{}://{}{}'.format(url_bits.scheme, url_bits.netloc, path)
 
+            if url == r.url:
+                log('Directed to same login page. Authorizaiton likely failed')
+                return False
+
             # reset the values
             values = {}
             for input in form.find_all('input'):

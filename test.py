@@ -1,4 +1,8 @@
 #!/usr/bin/python
+
+#import httplib as http_client
+#http_client.HTTPConnection.debuglevel = 1
+
 import sys, os
 from optparse import OptionParser
 from resources.lib.tsngo import *
