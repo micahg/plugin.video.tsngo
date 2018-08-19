@@ -8,8 +8,8 @@ from bs4 import BeautifulSoup
 class OAuth:
 
     def __init__(self):
-        self.CONFIG_URL = 'http://idp.securetve.com/rest/1.0/urn:bellmedia:com:sp:tsn:prod:3/init/'
-        self.START_URL = self.CONFIG_URL + '{}?responsemethod=redirect&responsetarget=prod&lang=en'
+        self.CONFIG_URL = 'https://idp.securetve.com/rest/1.0/urn:bellmedia:com:sp:tsn:prod:1/init/urn:tsn:ca:idp:prod?responsemethod=redirect&format=jsonp&responsetarget=prod2https'
+        self.SECOND_URL = 'https://idp.securetve.com/rest/1.0/urn:bellmedia:com:sp:tsn:prod:1/init/urn:rogers:com:idp:prod?responsemethod=redirect&format=jsonp&responsetarget=prod2https'
         self.session = requests.Session()
         return
 
@@ -18,50 +18,13 @@ class OAuth:
         Authorize with the idp
         @param idp the provider (eg: rogers)
         """
-        idp_str = self.map_idp(idp);
-        log('{} -> {}'.format(idp, idp_str), True)
-        callback(33) if not callback == None else None
-        result = self.start_oauth(idp, idp_str, username, password)
+        result = self.start_oauth(idp, username, password)
         callback(66) if not callback == None else None
         saveCookies(self.session.cookies)
         callback(100) if not callback == None else None
         return result
 
-    def map_idp(self, idp_name):
-        """
-        Get the IDP strign by name
-        @param idp_name The IDP name (eg: Rogers)
-        """
-        # fetch the auth config
-        r = self.session.post(self.CONFIG_URL)
-        if not r.status_code == 200:
-            log('ERROR: {} returns status of {}'.format(self.CONFIG_URL, r.status_code), True)
-            return None
-
-        # load the json and get the list of idps
-        js = json.loads(r.content)
-        if not 'possible_idps' in js:
-            log("ERROR: no idps available", True)
-            return None
-
-
-        # find the requested idp_name
-        idp_str = None
-        for idp_key in js['possible_idps'].keys():
-            name_key = js['possible_idps'][idp_key]['name']
-            if name_key.lower() == idp_name.lower():
-                idp_str = idp_key
-                break
-
-        # error if the idp_name is not found
-        if idp_str == None:
-            log('ERROR: unable to match idp_name with name "{}"'.format(idp_name), True)
-            return None
-
-        return idp_str
-
-
-    def start_oauth(self, idp, idp_str, username, password):
+    def start_oauth(self, idp, username, password):
         """
         Begin OAuth
         @param idp_str IDP URL string
@@ -72,18 +35,24 @@ class OAuth:
         url_regex = '<form.*? action="(.*?)"'
 
         credentials = {}
-        url = self.START_URL.format(idp_str)
         if idp.lower() == 'rogers':
             credentials['UserName'] = username
             credentials['UserPassword'] = password
         elif idp.lower() == 'bell':
             credentials['USER'] = username
             credentials['PASSWORD'] = password
+        elif idp.lower() == 'telus':
+            credentials = credentials
         else:
             log('Unsupported idp: "{}"'.format(idp))
             return False
 
-        return self.standardAuthorize(url, credentials)
+        r = self.session.post(self.CONFIG_URL)
+        if not r.status_code == 200:
+            log('ERROR: {} returns status of {}'.format(self.CONFIG_URL, r.status_code), True)
+            return None
+
+        return self.standardAuthorize(self.SECOND_URL, credentials)
 
 
     def standardAuthorize(self, url, credentials):
@@ -106,15 +75,30 @@ class OAuth:
             html_doc = BeautifulSoup(r.content, 'html.parser')
 
             # I guess TSN ends on a page titled ais_response
-            if html_doc.find('title').string == 'ais_response':
-                return True
+            #if html_doc.find('title').string == 'ais_response':
+            #    return True
 
             form = html_doc.find('form')
+            if form == None:
+                return True
+            
             post = form.get('method').lower() == 'post'
 
             action = form.get('action')
+            """
+            This little bit is to work around telus using javascript to submit
+            their logon form - annoying 
+            """
             if not action:
-                log('Unable to determine {} redirect URL'.format(idp), True)
+                print r.content
+                for input in form.find_all('input'):
+                    if input.get('name').lower() == 'authstate':
+                        action = input.get('value')
+                        action = action[action.find(':')+1:len(action)]
+                        post = True
+
+            if not action:
+                log('Unable to determine redirect URL at {}'.format(r.url), True)
                 return False
 
             # strip leading './' eg action="./authorize?blah=foo"

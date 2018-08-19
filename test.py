@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-#import httplib as http_client
-#http_client.HTTPConnection.debuglevel = 1
+import httplib as http_client
+http_client.HTTPConnection.debuglevel = 1
 
 import sys, os
 from optparse import OptionParser
@@ -17,7 +17,7 @@ parser.add_option('-p', '--password', type='string', dest='password',
                   help="Password for authentication")
 parser.add_option('-i', '--id', type='int', dest='id',
                   help="Channel ID")
-parser.add_option('-m', '--mso', type='string', dest='mso', default='Rogers',
+parser.add_option('-m', '--mso', type='string', dest='mso', default=None,
                   help="Multi-system operator (eg: Rogers)")
 parser.add_option('-s', '--schedule', action='store_true', dest='schedule')
 (options, args) = parser.parse_args()
