@@ -1,5 +1,5 @@
 import requests, json
-from utils import log
+from .utils import log
 from datetime import datetime, timedelta
 from dateutil.parser import *
 from dateutil.tz import *
