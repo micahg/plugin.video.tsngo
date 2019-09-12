@@ -2,7 +2,7 @@
 <settings>
    <setting id="username"  type="text" label="30050"/>
    <setting id="password"  type="text" label="30051" option="hidden"/>
-   <setting id="mso" type="labelenum" label="30057" values="Rogers|Bell" default="Rogers" />
+   <setting id="mso" type="labelenum" label="30057" values="Shaw|Rogers|Bell" default="Rogers" />
    <setting id="logout" option="close" label="30056" type="action" action="RunScript(plugin.video.tsngo, logout)"/>
    <setting id="authorized" type="bool" visible="false" default="false" />
 </settings>

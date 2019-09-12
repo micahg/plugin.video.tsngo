@@ -34,7 +34,7 @@ def loadCookies():
             f.close()
             return cookies
     except IOError as err:
-        print 'Unable to load cookies: {}'.format(err)
+        log('Unable to load cookies: {}'.format(err), True)
 
     return None
 
@@ -50,4 +50,4 @@ def log(msg, error = False):
         full_msg = "plugin.video.tsngo: {0}".format(msg)
         xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGINFO)
     except:
-        print msg
+        print(msg)

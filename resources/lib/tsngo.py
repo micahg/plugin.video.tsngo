@@ -1,5 +1,11 @@
+#import requests.packages.urllib3.connectionpool as httplib
+#httplib.HTTPConnection.debuglevel = 1
 import requests, json, re, urllib
-from utils import saveCookies, loadCookies, log
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus
+from .utils import saveCookies, loadCookies, log
 
 class TsnGo:
 
@@ -14,10 +20,9 @@ class TsnGo:
         self.WIDEVINE_URL = 'https://license.9c9media.ca/widevine'
         self.session = requests.Session()
 
-
     def refreshCookies(self):
         """
-        Set the session cookies to the saved session cookies, so long as the 
+        Set the session cookies to the saved session cookies, so long as the
         saved cookies are valid
         """
         session_cookies = loadCookies()
@@ -60,12 +65,13 @@ class TsnGo:
         @return the content id.
         """
         self.refreshCookies()
-        r = self.session.get(self.STREAM_DETAILS_FMT.format(id))
+        url = self.STREAM_DETAILS_FMT.format(id)
+        r = self.session.get(url)
 
         if not r.status_code == 200:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
             return None
-        saveCookies(self.session.cookies) 
+        saveCookies(self.session.cookies)
 
         item = json.loads(r.content)
 
@@ -83,7 +89,7 @@ class TsnGo:
         r = self.session.get(url)
         if not r.status_code == 200:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
-            return None 
+            return None
         saveCookies(self.session.cookies)
 
         item = json.loads(r.content)
@@ -96,16 +102,17 @@ class TsnGo:
 
     def getMpdAuthz(self, mpd_info):
         self.refreshCookies()
+        # Why the fuck are we using TSN2?!?!?!?!
         auth_res = mpd_info['auth_res']
         url = self.MPD_AUTH_FMT.format(auth_res, auth_res, auth_res)
         r = self.session.get(url)
         if not r.status_code == 200:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
-            return None 
+            return None
         saveCookies(self.session.cookies)
 
         regex_fmt = self.MPD_AUTH_RESP_REGEX_FMT.format(auth_res)
-        stuff = re.search(regex_fmt, r.content)
+        stuff = re.search(regex_fmt, r.content.decode('utf-8'))
         if not stuff:
             log('ERROR: Unable to parse MPD AI response "{}"'.format(r.content), True)
             return { 'status': 'unknown' }
@@ -121,17 +128,18 @@ class TsnGo:
             return False
 
         if not auth['authorization'] == True:
-            log('ERROR: AI response had authorization value of "{}" ({})'.format(auth['authorization'], r.content), True)
+            log('ERROR: AI response had authorization value of "{}" ({})'.format(auth['authorization'], authz), True)
             return False
 
         return True
 
     def getMpdUrl(self, id, content_id, authz):
         self.refreshCookies()
-        url = self.MPD_REF_FMT.format(id, content_id, urllib.quote_plus(authz))
+        #url = self.MPD_REF_FMT.format(id, content_id, urllib.quote_plus(authz))
+        url = self.MPD_REF_FMT.format(id, content_id, quote_plus(authz))
         r = self.session.get(url)
         if not r.status_code == 200:
             log('ERROR: {} returns status of {}'.format(url, r.status_code), True)
-            return None 
+            return None
         saveCookies(self.session.cookies)
         return r.content
